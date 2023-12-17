@@ -37,6 +37,17 @@ I have incorporated an IPv6 setup process into the original project, using the [
 + Added IPv6 listening configuration `listen [::]:<port>` to several `matrix-*.conf` files located in the path `/roles/custom/matrix-nginx-proxy/templates/nginx/conf.d`.
 
 For setup instructions, please refer to the original project's Installation Guide: [Matrix server setup using Ansible and Docker](https://github.com/spantaleev/matrix-docker-ansible-deploy).
+
+## Result
+
++ All containers after `ansible-playbook` deployment,  We can see that `ipv6nat` started successfully.
+
+  ![ps -a](/Users/liuyang/DATA/Downloads/matrix-ipv6/images/ps -a.png)
+
++ ipv6 test inside the docker container `matrix-nginx-proxy`
+
+  ![ping6 in docker container](/Users/liuyang/DATA/Downloads/matrix-ipv6/images/ping6 in docker container.png)
+
 ## Related Project
 
 + [docker-ipv6nat](https://github.com/robbertkl/docker-ipv6nat). 

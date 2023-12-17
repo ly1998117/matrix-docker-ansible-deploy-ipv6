@@ -42,11 +42,11 @@ For setup instructions, please refer to the original project's Installation Guid
 
 + All containers after `ansible-playbook` deployment,  We can see that `ipv6nat` started successfully.
 
-  ![ps -a](images/ps -a.png)
+  ![ps -a](https://github.com/ly1998117/matrix-docker-ansible-deploy-ipv6/blob/main/images/ps%20-a.png)
 
 + ipv6 test inside the docker container `matrix-nginx-proxy`
 
-  ![ping6 in docker container](images/ping6 in docker container.png)
+  ![ping6 in docker container](https://github.com/ly1998117/matrix-docker-ansible-deploy-ipv6/blob/main/images/ping6%20in%20docker%20container.png)
 
 ## Related Project
 

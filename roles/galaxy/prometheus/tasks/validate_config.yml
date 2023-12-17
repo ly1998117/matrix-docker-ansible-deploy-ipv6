@@ -1,0 +1,18 @@
+---
+
+- name: Fail if required Prometheus settings not defined
+  ansible.builtin.fail:
+    msg: >
+      You need to define a required configuration setting (`{{ item }}`).
+  when: "vars[item] == ''"
+  with_items:
+    - prometheus_identifier
+    - prometheus_uid
+    - prometheus_gid
+    - prometheus_container_network
+
+- name: Fail if required settings for traefik labels are not defined
+  ansible.builtin.fail:
+    msg: >
+      You need to define prometheus_hostname to use traefik labels.
+  when: prometheus_container_labels_traefik_enabled and prometheus_hostname == ''

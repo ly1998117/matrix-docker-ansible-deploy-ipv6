@@ -1,0 +1,29 @@
+---
+
+- tags:
+    - setup-all
+    - setup-client-element
+    - install-all
+    - install-client-element
+  block:
+    - when: matrix_client_element_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+
+    - when: matrix_client_element_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/prepare_themes.yml"
+
+    - when: matrix_client_element_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/setup_install.yml"
+
+- tags:
+    - setup-all
+    - setup-client-element
+  block:
+    - when: not matrix_client_element_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/setup_uninstall.yml"
+
+- tags:
+    - self-check
+  block:
+    - when: matrix_client_element_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/self_check.yml"

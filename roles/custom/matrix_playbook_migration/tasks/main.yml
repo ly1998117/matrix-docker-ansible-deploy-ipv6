@@ -1,0 +1,31 @@
+---
+
+- tags:
+    - setup-all
+    - install-all
+  block:
+    - ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+
+- when: ansible_os_family == 'Debian' and matrix_playbook_migration_debian_signedby_migration_enabled | bool
+  tags:
+    - setup-all
+    - install-all
+    - setup-docker
+    - install-docker
+  block:
+    - ansible.builtin.include_tasks: "{{ role_path }}/tasks/debian_docker_signedby_migration.yml"
+
+- tags:
+    - setup-all
+    - install-all
+  block:
+    - ansible.builtin.include_tasks: "{{ role_path }}/tasks/cleanup_usr_local_bin.yml"
+
+- when: devture_traefik_enabled | bool
+  tags:
+    - setup-all
+    - install-all
+    - setup-traefik
+    - install-traefik
+  block:
+    - ansible.builtin.include_tasks: "{{ role_path }}/tasks/devture_traefik_to_matrix_traefik.yml"

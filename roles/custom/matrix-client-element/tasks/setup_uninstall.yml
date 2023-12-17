@@ -1,0 +1,25 @@
+---
+
+- name: Check existence of matrix-client-element.service
+  ansible.builtin.stat:
+    path: "{{ devture_systemd_docker_base_systemd_path }}/matrix-client-element.service"
+  register: matrix_client_element_service_stat
+
+- when: matrix_client_element_service_stat.stat.exists | bool
+  block:
+    - name: Ensure matrix-client-element is stopped
+      ansible.builtin.service:
+        name: matrix-client-element
+        state: stopped
+        enabled: false
+        daemon_reload: true
+
+    - name: Ensure matrix-client-element.service doesn't exist
+      ansible.builtin.file:
+        path: "{{ devture_systemd_docker_base_systemd_path }}/matrix-client-element.service"
+        state: absent
+
+    - name: Ensure Element path doesn't exist
+      ansible.builtin.file:
+        path: "{{ matrix_client_element_data_path }}"
+        state: absent

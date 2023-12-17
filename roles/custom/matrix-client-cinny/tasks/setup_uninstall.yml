@@ -1,0 +1,24 @@
+---
+- name: Check existence of matrix-client-cinny.service
+  ansible.builtin.stat:
+    path: "{{ devture_systemd_docker_base_systemd_path }}/matrix-client-cinny.service"
+  register: matrix_client_cinny_service_stat
+
+- when: matrix_client_cinny_service_stat.stat.exists | bool
+  block:
+    - name: Ensure matrix-client-cinny is stopped
+      ansible.builtin.service:
+        name: matrix-client-cinny
+        state: stopped
+        enabled: false
+        daemon_reload: true
+
+    - name: Ensure matrix-client-cinny.service doesn't exist
+      ansible.builtin.file:
+        path: "{{ devture_systemd_docker_base_systemd_path }}/matrix-client-cinny.service"
+        state: absent
+
+    - name: Ensure Cinny paths doesn't exist
+      ansible.builtin.file:
+        path: "{{ matrix_client_cinny_data_path }}"
+        state: absent

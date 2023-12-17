@@ -1,0 +1,54 @@
+---
+# We use the `htpasswd` tool to generate the htpasswd file.
+# There's an Ansible module that helps with that, but it requires passlib (a Python module) to be installed on the server.
+# See: https://docs.ansible.com/ansible/2.3/htpasswd_module.html#requirements-on-host-that-executes-module
+# We support various distros, with various versions of Python. Installing additional Python modules can be a hassle.
+# As a workaround, we run `htpasswd` from an Apache container image.
+- when: prometheus_basic_auth_enabled | bool
+  block:
+    - name: Ensure Apache Docker image is pulled for generating htpasswd file
+      community.docker.docker_image:
+        name: "{{ prometheus_basic_auth_apache_container_image }}"
+        source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
+        force_source: "{{ prometheus_basic_auth_apache_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
+        force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else prometheus_basic_auth_apache_container_image_force_pull }}"
+      register: result
+      retries: "{{ devture_playbook_help_container_retries_count }}"
+      delay: "{{ devture_playbook_help_container_retries_delay }}"
+      until: result is not failed
+
+    # We store the password in a file and make the `htpasswd` tool read it from there,
+    # as opposed to passing it directly on stdin (which will expose it to other processes on the server).
+    - name: Store HTTP Basic Auth password in a temporary file
+      ansible.builtin.copy:
+        content: "{{ prometheus_basic_auth_password }}"
+        dest: "/tmp/prometheus-browser-password"
+        mode: 0400
+        owner: "{{ prometheus_uid }}"
+        group: "{{ prometheus_gid }}"
+
+    - name: Generate htpasswd from username/password
+      ansible.builtin.command:
+        cmd: >-
+          {{ devture_systemd_docker_base_host_command_docker }} run
+          --rm
+          --user={{ prometheus_uid }}:{{ prometheus_gid }}
+          --cap-drop=ALL
+          --network=none
+          --read-only
+          --mount type=bind,src=/tmp/prometheus-browser-password,dst=/password,ro
+          --entrypoint=/bin/sh
+          {{ prometheus_basic_auth_apache_container_image }}
+          -c
+          'cat /password | htpasswd -i -n {{ prometheus_basic_auth_username }}'
+      changed_when: true
+      register: htpasswd_result
+
+    - name: Capture htpasswd password
+      ansible.builtin.set_fact:
+        prometheus_container_label_basicauth_users: "{{ htpasswd_result.stdout }}"
+
+    - name: Delete temporary HTTP Basic Auth password file
+      ansible.builtin.file:
+        path: /tmp/prometheus-browser-password
+        state: absent

@@ -1,0 +1,44 @@
+---
+
+- name: Ensure Redis paths exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0750
+    owner: "{{ redis_uid }}"
+    group: "{{ redis_gid }}"
+  with_items:
+    - "{{ redis_base_path }}"
+    - "{{ redis_data_path }}"
+
+- name: Ensure Redis environment variables file created
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/{{ item }}.j2"
+    dest: "{{ redis_base_path }}/{{ item }}"
+    mode: 0640
+    owner: "{{ redis_uid }}"
+    group: "{{ redis_gid }}"
+  with_items:
+    - "redis.conf"
+
+- name: Ensure Redis container image is pulled
+  community.docker.docker_image:
+    name: "{{ redis_container_image }}"
+    source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
+    force_source: "{{ redis_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
+    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else redis_container_image_force_pull }}"
+  register: result
+  retries: "{{ devture_playbook_help_container_retries_count }}"
+  delay: "{{ devture_playbook_help_container_retries_delay }}"
+  until: result is not failed
+
+- name: Ensure Redis container network is created
+  community.general.docker_network:
+    name: "{{ redis_container_network }}"
+    driver: bridge
+
+- name: Ensure Redis systemd installed
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/redis.service.j2"
+    dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ redis_identifier }}.service"
+    mode: 0644

@@ -1,0 +1,26 @@
+---
+
+- name: Fail if required mautrix-telegram settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item.name }}`).
+  when: "item.when | bool and vars[item.name] == ''"
+  with_items:
+    - {'name': 'matrix_mautrix_telegram_api_id', when: true}
+    - {'name': 'matrix_mautrix_telegram_api_hash', when: true}
+    - {'name': 'matrix_mautrix_telegram_public_endpoint', when: true}
+    - {'name': 'matrix_mautrix_telegram_appservice_token', when: true}
+    - {'name': 'matrix_mautrix_telegram_homeserver_token', when: true}
+    - {'name': 'matrix_mautrix_telegram_database_hostname', when: "{{ matrix_mautrix_telegram_database_engine == 'postgres' }}"}
+
+- name: (Deprecation) Catch and report renamed Telegram variables
+  ansible.builtin.fail:
+    msg: >-
+      Your configuration contains a variable, which now has a different name.
+      Please change your configuration to rename the variable (`{{ item.old }}` -> `{{ item.new }}`).
+  when: "item.old in vars"
+  with_items:
+    - {'old': 'matrix_mautrix_telegram_container_exposed_port_number', 'new': '<superseded by matrix_mautrix_telegram_container_http_host_bind_port>'}
+    - {'old': 'matrix_mautrix_telegram_container_self_build', 'new': 'matrix_mautrix_telegram_container_image_self_build'}
+    - {'old': 'matrix_telegram_lottieconverter_container_self_build', 'new': 'matrix_mautrix_telegram_container_image_self_build'}
+    - {'old': 'matrix_telegram_lottieconverter_container_self_build_mask_arch', 'new': 'matrix_telegram_lottieconverter_container_image_self_build_mask_arch'}

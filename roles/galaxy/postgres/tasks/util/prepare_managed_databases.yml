@@ -1,0 +1,29 @@
+---
+
+- name: Ensure Postgres is started
+  ansible.builtin.service:
+    name: "{{ devture_postgres_identifier }}"
+    state: started
+    daemon_reload: true
+  register: devture_postgres_ensure_started_result
+
+- name: Wait a bit, so that Postgres can start
+  when: devture_postgres_ensure_started_result.changed | bool
+  ansible.builtin.wait_for:
+    timeout: "{{ devture_postgres_managed_databases_postgres_start_wait_timeout_seconds }}"
+  delegate_to: 127.0.0.1
+  become: false
+
+- name: Prepare managed Postgres database
+  ansible.builtin.include_tasks: "{{ role_path }}/tasks/util/prepare_managed_database.yml"
+  with_items: "{{ devture_postgres_managed_databases }}"
+  loop_control:
+    loop_var: managed_db
+  # Suppress logging to avoid dumping the credentials to the shell
+  no_log: true
+
+- name: Ensure Postgres is stopped (if it previously was)
+  when: devture_postgres_ensure_started_result.changed | bool
+  ansible.builtin.service:
+    name: "{{ devture_postgres_identifier }}"
+    state: stopped

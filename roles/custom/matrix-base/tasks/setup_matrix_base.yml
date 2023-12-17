@@ -1,0 +1,27 @@
+---
+
+- name: Ensure Matrix base paths exists
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "{{ matrix_base_data_path_mode }}"
+    owner: "{{ matrix_user_username }}"
+    group: "{{ matrix_user_groupname }}"
+  with_items:
+    - "{{ matrix_base_data_path }}"
+    - "{{ matrix_bin_path }}"
+
+- name: Ensure Matrix network is created in Docker
+  community.docker.docker_network:
+    name: "{{ matrix_docker_network }}"
+    driver: bridge
+    enable_ipv6: true
+    ipam_config:
+      - subnet: "fd00:1::1/80"
+        gateway: "fd00:1::1"
+
+- name: Ensure remove-all script created
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/bin/remove-all.j2"
+    dest: "{{ matrix_bin_path }}/remove-all"
+    mode: 0750

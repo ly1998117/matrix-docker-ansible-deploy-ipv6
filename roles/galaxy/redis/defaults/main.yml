@@ -1,0 +1,49 @@
+---
+
+# Project source code URL: https://github.com/redis/redis
+
+redis_enabled: true
+
+redis_identifier: redis
+
+redis_uid: ''
+redis_gid: ''
+
+redis_connection_password: ""
+
+redis_base_path: "{{ redis_identifier }}"
+redis_data_path: "{{ redis_base_path }}/data"
+
+redis_version: 7.2.3
+
+redis_container_image: "{{ redis_container_image_registry_prefix }}redis:{{ redis_container_image_tag }}"
+redis_container_image_tag: "{{ redis_version }}-alpine"
+redis_container_image_registry_prefix: docker.io/
+redis_container_image_force_pull: "{{ redis_container_image.endswith(':latest') }}"
+
+# The base container network. It will be auto-created by this role if it doesn't exist already.
+redis_container_network: "{{ redis_identifier }}"
+
+# A list of additional container networks that the container would be connected to.
+# The role does not create these networks, so make sure they already exist.
+redis_container_additional_networks: []
+
+# Controls how long to wait for the container to stop gracefully before killing it.
+# Because `devture_systemd_docker_base_container_stop_grace_time_seconds` may be quite short and databases are more important to stop gracefully,
+# we default to at least 30 seconds.
+redis_container_stop_grace_time_seconds: "{{ [devture_systemd_docker_base_container_stop_grace_time_seconds, 30] | max }}"
+
+# A list of extra arguments to pass to the container
+redis_container_extra_arguments: []
+
+# List of systemd services that the redis systemd service depends on
+redis_systemd_required_services_list: ['docker.service']
+
+# List of systemd services that the redis systemd service wants
+redis_systemd_wanted_services_list: []
+
+# Controls whether the container exposes a port (tcp/6379 in the container)
+# that can be used to access redis from outside the container
+#
+# Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:6379"), or empty string to not expose.
+redis_container_redis_bind_port: ""

@@ -1,0 +1,101 @@
+---
+
+- name: (Deprecation) Catch and report renamed Hookshot variables
+  ansible.builtin.fail:
+    msg: >-
+      Your configuration contains a variable, which now has a different name.
+      Please change your configuration to rename the variable (`{{ item.old }}` -> `{{ item.new }}`).
+  when: "item.old in vars"
+  with_items:
+    - {'old': 'matrix_hookshot_feeds_interval', 'new': 'matrix_hookshot_feeds_pollIntervalSeconds'}
+    - {'old': 'matrix_hookshot_generic_urlprefix', 'new': 'matrix_hookshot_generic_urlPrefix'}
+    - {'old': 'matrix_hookshot_generic_allow_js_transformation_functions', 'new': 'matrix_hookshot_generic_allowJsTransformationFunctions'}
+    - {'old': 'matrix_hookshot_generic_user_id_prefix', 'new': 'matrix_hookshot_generic_userIdPrefix'}
+    - {'old': 'matrix_hookshot_github_secret', 'new': 'matrix_hookshot_github_webhook_secret'}
+    - {'old': 'matrix_hookshot_github_appid', 'new': 'matrix_hookshot_github_auth_id'}
+    - {'old': 'matrix_hookshot_github_oauth_id', 'new': 'matrix_hookshot_github_oauth_client_id'}
+    - {'old': 'matrix_hookshot_github_oauth_secret', 'new': 'matrix_hookshot_github_oauth_client_secret'}
+    - {'old': 'matrix_hookshot_github_oauth_uri', 'new': 'matrix_hookshot_github_oauth_redirect_uri'}
+    - {'old': 'matrix_hookshot_github_ignore_hooks', 'new': 'matrix_hookshot_github_defaultOptions_ignoreHooks'}
+    - {'old': 'matrix_hookshot_github_command_prefix', 'new': 'matrix_hookshot_github_defaultOptions_commandPrefix'}
+    - {'old': 'matrix_hookshot_github_showIssueRoomLink', 'new': 'matrix_hookshot_github_defaultOptions_showIssueRoomLink'}
+    - {'old': 'matrix_hookshot_github_pr_diff', 'new': 'matrix_hookshot_github_defaultOptions_prDiff'}
+    - {'old': 'matrix_hookshot_github_including_labels', 'new': 'matrix_hookshot_github_defaultOptions_includingLabels'}
+    - {'old': 'matrix_hookshot_github_excluding_labels', 'new': 'matrix_hookshot_github_defaultOptions_excludingLabels'}
+    - {'old': 'matrix_hookshot_github_hotlink_prefix', 'new': 'matrix_hookshot_github_defaultOptions_hotlinkIssues_prefix'}
+    - {'old': 'matrix_hookshot_jira_secret', 'new': 'matrix_hookshot_jira_webhook_secret'}
+    - {'old': 'matrix_hookshot_jira_oauth_id', 'new': 'matrix_hookshot_jira_oauth_client_id'}
+    - {'old': 'matrix_hookshot_jira_oauth_secret', 'new': 'matrix_hookshot_jira_oauth_client_secret'}
+    - {'old': 'matrix_hookshot_jira_oauth_uri', 'new': 'matrix_hookshot_jira_oauth_client_secret'}
+    - {'old': 'matrix_hookshot_gitlab_secret', 'new': 'matrix_hookshot_gitlab_webhook_secret'}
+
+- name: Fail if required settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`).
+  when: "vars[item] == ''"
+  with_items:
+    - "matrix_hookshot_appservice_token"
+    - "matrix_hookshot_homeserver_token"
+
+- name: Fail if required GitHub settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) to enable GitHub.
+  when: "matrix_hookshot_github_enabled and vars[item] == ''"
+  with_items:
+    - "matrix_hookshot_github_auth_id"
+    - "matrix_hookshot_github_webhook_secret"
+
+- name: Fail if required GitHub OAuth settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) to enable GitHub OAuth.
+  when: "matrix_hookshot_github_oauth_enabled and vars[item] == ''"
+  with_items:
+    - "matrix_hookshot_github_oauth_client_id"
+    - "matrix_hookshot_github_oauth_client_secret"
+
+- name: Fail if required Jira settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) to enable Jira.
+  when: "matrix_hookshot_jira_enabled and vars[item] == ''"
+  with_items:
+    - "matrix_hookshot_jira_webhook_secret"
+
+- name: Fail if required Jira OAuth settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) to enable Jira OAuth.
+  when: "matrix_hookshot_jira_oauth_enabled and vars[item] == ''"
+  with_items:
+    - "matrix_hookshot_jira_oauth_client_id"
+    - "matrix_hookshot_jira_oauth_client_secret"
+
+- name: Fail if required Figma settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define at least one Figma instance in `matrix_hookshot_figma_instances` to enable Figma.
+  when: "matrix_hookshot_figma_enabled and matrix_hookshot_figma_instances | length == 0"
+
+- name: Fail if required provisioning settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) to enable provisioning.
+  when: "matrix_hookshot_provisioning_enabled and vars[item] == ''"
+  with_items:
+    - "matrix_hookshot_provisioning_secret"
+
+- name: (Deprecation) Catch and report old metrics usage
+  ansible.builtin.fail:
+    msg: >-
+      Your configuration contains a variable (`{{ item }}`), which refers to the old metrics collection system for Hookshot,
+      which exposed metrics on `https://stats.DOMAIN/hookshot/metrics`.
+
+      We now recommend exposing Hookshot metrics in another way, from another URL.
+      Refer to the changelog for more details: https://github.com/spantaleev/matrix-docker-ansible-deploy/blob/master/CHANGELOG.md#2022-06-22
+  with_items:
+    - matrix_hookshot_proxy_metrics
+    - matrix_hookshot_metrics_endpoint
+  when: "item in vars"

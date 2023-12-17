@@ -1,0 +1,24 @@
+---
+
+- name: Ensure Matrix group is created
+  ansible.builtin.group:
+    name: "{{ matrix_user_groupname }}"
+    gid: "{{ omit if matrix_user_gid is none else matrix_user_gid }}"
+    state: present
+  register: matrix_group
+
+- name: Ensure Matrix user is created
+  ansible.builtin.user:
+    name: "{{ matrix_user_username }}"
+    uid: "{{ omit if matrix_user_uid is none else matrix_user_uid }}"
+    state: present
+    group: "{{ matrix_user_groupname }}"
+    home: "{{ matrix_base_data_path }}"
+    create_home: false
+    system: true
+  register: matrix_user
+
+- name: Initialize matrix_user_uid and matrix_user_gid
+  ansible.builtin.set_fact:
+    matrix_user_uid: "{{ matrix_user.uid }}"
+    matrix_user_gid: "{{ matrix_group.gid }}"

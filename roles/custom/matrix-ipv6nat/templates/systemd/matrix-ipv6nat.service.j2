@@ -1,0 +1,37 @@
+#jinja2: lstrip_blocks: "True"
+[Unit]
+Description=Matrix ipv6nat
+{% for service in matrix_ipv6nat_systemd_required_services_list %}
+Requires={{ service }}
+After={{ service }}
+{% endfor %}
+{% for service in matrix_ipv6nat_systemd_wanted_services_list %}
+Wants={{ service }}
+{% endfor %}
+DefaultDependencies=no
+
+[Service]
+Type=simple
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop --time={{ matrix_ipv6nat_container_stop_grace_time_seconds }} matrix-ipv6nat 2>/dev/null || true'
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm matrix-ipv6nat 2>/dev/null || true'
+
+ExecStart={{ devture_systemd_docker_base_host_command_docker }} run \
+			--rm \
+			--privileged \
+			--name=matrix-ipv6nat \
+			--log-driver=none \
+			--user=0:0 \
+			--cap-drop=ALL \
+			--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock,ro \
+			--mount type=bind,src=/lib/modules,dst=/lib/modules,ro \
+			--network=host \
+			{{ matrix_ipv6nat_container_image }}
+
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop --time={{ matrix_ipv6nat_container_stop_grace_time_seconds }} matrix-ipv6nat 2>/dev/null || true'
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm matrix-ipv6nat 2>/dev/null || true'
+Restart=always
+RestartSec=30
+SyslogIdentifier=matrix-ipv6nat
+
+[Install]
+WantedBy=multi-user.target

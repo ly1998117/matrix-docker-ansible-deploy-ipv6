@@ -1,0 +1,25 @@
+---
+
+- name: Check existence of matrix-ipv6nat service
+  ansible.builtin.stat:
+    path: "{{ devture_systemd_docker_base_systemd_path }}/matrix-ipv6nat.service"
+  register: matrix_ipv6nat_service_stat
+
+- when: matrix_ipv6nat_service_stat.stat.exists | bool
+  block:
+    - name: Ensure matrix-ipv6nat is stopped
+      ansible.builtin.service:
+        name: matrix-ipv6nat
+        state: stopped
+        enabled: false
+        daemon_reload: true
+
+    - name: Ensure matrix-ipv6nat.service doesn't exist
+      ansible.builtin.file:
+        path: "{{ devture_systemd_docker_base_systemd_path }}/matrix-ipv6nat.service"
+        state: absent
+
+    - name: Ensure Matrix chatgpt paths don't exist
+      ansible.builtin.file:
+        path: "{{ matrix_ipv6nat_base_path }}"
+        state: absent

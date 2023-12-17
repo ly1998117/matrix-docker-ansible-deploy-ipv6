@@ -1,0 +1,20 @@
+---
+
+- tags:
+    - setup-all
+    - setup-dimension
+    - install-all
+    - install-dimension
+  block:
+    - when: matrix_dimension_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+
+    - when: matrix_dimension_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/setup_install.yml"
+
+- tags:
+    - setup-all
+    - setup-dimension
+  block:
+    - when: not matrix_dimension_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/setup_uninstall.yml"

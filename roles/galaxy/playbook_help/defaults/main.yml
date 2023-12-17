@@ -1,0 +1,9 @@
+---
+
+# Each docker pull will retry on failed attempt 10 times with delay of 10 seconds between each attempt.
+devture_playbook_help_container_retries_count: 10
+devture_playbook_help_container_retries_delay: 10
+
+# Each get_url will retry on failed attempt 10 times with delay of 10 seconds between each attempt.
+devture_playbook_help_geturl_retries_count: 10
+devture_playbook_help_geturl_retries_delay: 10

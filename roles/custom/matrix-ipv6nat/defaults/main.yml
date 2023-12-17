@@ -1,0 +1,25 @@
+---
+# ipv6nat is a bot for chatting to openAI ipv6nat matrix bot
+# Project source code URL: https://github.com/matrixgpt/matrix-ipv6nat-bot
+
+matrix_ipv6nat_enabled: true
+
+# renovate: datasource=docker depName=ghcr.io/matrixgpt/matrix-ipv6nat-bot
+matrix_ipv6nat_version: 'latest'
+matrix_ipv6nat_container_image_self_build: false
+matrix_ipv6nat_container_image: "robbertkl/ipv6nat"
+matrix_ipv6nat_container_image_tag: "{{ matrix_ipv6nat_version }}"
+matrix_ipv6nat_container_image_force_pull: "{{ matrix_ipv6nat_container_image.endswith(':latest') }}"
+
+# Controls how long to wait for the container to stop gracefully before killing it.
+# We use a small value here, because this container does not seem to handle the SIGTERM signal.
+matrix_ipv6nat_container_stop_grace_time_seconds: 1
+
+# A list of extra arguments to pass to the container
+matrix_ipv6nat_container_extra_arguments: []
+
+# List of systemd services that matrix-ipv6nat.service depends on
+matrix_ipv6nat_systemd_required_services_list: ['docker.service']
+
+# List of systemd services that matrix-ipv6nat.service wants
+matrix_ipv6nat_systemd_wanted_services_list: []

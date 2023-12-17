@@ -1,0 +1,18 @@
+---
+
+-
+  tags:
+    - setup-all
+    - setup-ipv6nat
+    - install-all
+    - install-ipv6nat
+  block:
+    - when: matrix_ipv6nat_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
+
+- tags:
+    - setup-all
+    - setup-ipv6nat
+  block:
+    - when: not matrix_ipv6nat_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
